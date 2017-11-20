@@ -1,2 +1,3 @@
-from .svm_new import SVM
+from .svm import SVM
+from .svmgo import SVMGo
 

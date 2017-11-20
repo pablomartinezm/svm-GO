@@ -17,8 +17,13 @@ class TestInit(unittest.TestCase):
         self.assertEqual(clf.alpha, np.array([1]))
         self.assertEqual(clf._supp_idx, np.array([0]))
 
-    def test_random_vectors(self):
-        pass
+    def test_regularization(self):
+        clf = SVM()
+        clf.alpha = np.array([0.5])
+        clf.epsilon = 1
+        clf.regularize(1, 1)
+        self.assertTrue(clf.alpha == np.array([0]))
+
 
 
 

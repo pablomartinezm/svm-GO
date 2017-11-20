@@ -1,2 +1,2 @@
-from .classes import SVM
+from .classes import SVM, SVMGo
 from .util import *

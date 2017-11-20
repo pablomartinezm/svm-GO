@@ -31,3 +31,4 @@ def draw_kernel_svm(X, y, supp, alpha, g, many_dim=False):
     plt.xlim((x_min, x_max))
     plt.ylim((y_min, y_max))
     print("done")
+    print(g)
