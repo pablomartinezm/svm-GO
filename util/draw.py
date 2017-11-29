@@ -16,7 +16,7 @@ def draw_kernel_svm(X, y, supp, alpha, g, many_dim=False):
     print(x_min, x_max)
     print(y_min, y_max)
 
-    Z = np.dot(sk.metrics.pairwise.rbf_kernel(np.c_[xx.ravel(), yy.ravel()], Y=supp, gamma=g), alpha)
+    Z = np.dot(sk.metrics.pairwise.rbf_kernel(np.c_[xx.ravel(), yy.ravel()], Y=supp, gamma=g), np.squeeze(alpha))
 
     # Put the result into a color plot
     Z = Z.reshape(xx.shape)

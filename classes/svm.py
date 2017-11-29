@@ -54,19 +54,25 @@ class SVM:
     def random_sample(self):
         pass
 
-    def fit(self, X, y):
+    def fit(self, X, y, epochs=10, verbose=True):
         # Preset the system
         self.assertions(X, y)
+
         self.set_gamma()
         self.set_random_state()
-
         # Add an initial Support Vector
         idx, _ = self.get_random_vectors(self.batch_size)
         self.add_sv(idx)
+        self.fit_online(epochs)
 
-        # Select a random element from the dataset equal to the batch size
-        for i in range(self.niter):
-            # Set random state
+    def fit_online(self, epochs):
+        for i in range(epochs):
+            self.fit_epoch()
+            print(self)
+
+    def fit_epoch(self):
+        for i in range(self.X.shape[0]):
+            # If there is dropout, select a random subset of SV
             self.random_sample()
 
             # Get the random batch of vectors
@@ -75,14 +81,18 @@ class SVM:
             decision = np.dot(kernel, self.alpha)
             self.log_state()
 
-            if self.y[xt_idx] * decision <= 1:
+            if self.y[xt_idx] * decision < 1:
                 self.optimize(xt_idx, xt, kernel)
                 self.add_sv(xt_idx)
 
             else:
                 self.regularize(xt_idx, xt)
 
-            print(self.alpha)
+    def score(self, X, y):
+        y[y == 0] = -1
+        z = np.ravel(
+            np.sign(np.dot(rbf_kernel(X, Y=X[self._supp_idx], gamma=self._gamma), self._alpha)).T)
+        return np.sum(z == y) / X.shape[0]
 
     def log_state(self, alpha=None):
         """
@@ -91,7 +101,7 @@ class SVM:
         :return:
         """
         if alpha is not None:
-            self.alpha_progress.append(np.sum(np.abs(alpha)))
+            self.alpha_progress.append(np.mean(np.abs(alpha)))
         else:
             self.gamma_progress.append(self._gamma)
             self.support_progress.append(len(self._supp_idx))
@@ -105,9 +115,9 @@ class SVM:
         :return:
         """
         # TODO: Check if we must just update the current alpha or all alphas.
-        reg_term = self.epsilon * self.alpha
+        reg_term = self.alpha
         opt_term = self.C * self.y[xt_idx] * kernel
-        d_alpha = np.squeeze(reg_term - opt_term)
+        d_alpha = self.epsilon * np.squeeze(reg_term - opt_term)
         self.log_state(alpha=d_alpha)
         self.alpha -= d_alpha
 
@@ -160,7 +170,7 @@ class SVM:
 
     def set_gamma(self):
         if self._gamma == 'auto':
-            self._gamma = 1./self.X.shape[0]
+            self._gamma = 1. / self.X.shape[0]
 
     def assertions(self, X, y):
         """
@@ -181,4 +191,8 @@ class SVM:
         self.X = X if self.X is None else X.append(X)
         self.y = y if self.y is None else y.append(X)
 
-
+    def __str__(self):
+        _str = "---- Training state ----\n"
+        _str += "Number of SV: %i\n" % self._supp_idx.shape[0]
+        _str += "Gamma: %0.3f\n" % self._gamma
+        return _str
