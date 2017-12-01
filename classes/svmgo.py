@@ -46,11 +46,11 @@ class SVMGo(SVM):
 
     def optimize(self, xt_idx, xt, kernel):
         # Optimize aña
-        # opt_term = self.C * self.y[xt_idx] * kernel
-        # d_alpha = -np.squeeze(opt_term)
-        # self.log_state(alpha=d_alpha)
-        # self.alpha -= d_alpha
-        super(SVMGo, self).optimize(xt_idx, xt, kernel)
+        opt_term = self.y[xt_idx] * kernel
+        d_alpha = -np.squeeze(opt_term)
+        self.log_state(alpha=d_alpha)
+        self.alpha -= d_alpha
+        #super(SVMGo, self).optimize(xt_idx, xt, kernel)
 
         # Optimize gamma
         norm = np.linalg.norm(xt-self.sv, axis=1)
@@ -77,7 +77,7 @@ class SVMGo(SVM):
 
     def sv_remove(self):
         k = int(self.remove*self._supp_idx.shape[0])
-        idx = np.argpartition(self._supp_idx, k)
+        idx = np.argpartition(np.abs(self._alpha), k)
         self._supp_idx = self._supp_idx[idx[k:]]
         self._alpha = self._alpha[idx[k:]]
 

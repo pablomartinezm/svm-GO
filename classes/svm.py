@@ -26,6 +26,7 @@ class SVM:
         self.gamma_progress = []
         self.alpha_progress = []
         self.support_progress = []
+        self.accuracy_progress = []
 
     @property
     def sv(self):
@@ -68,6 +69,7 @@ class SVM:
     def fit_online(self, epochs):
         for i in range(epochs):
             self.fit_epoch()
+            self.log_state(accuracy=self.score(self.X, self.y))
             print(self)
 
     def fit_epoch(self):
@@ -94,7 +96,7 @@ class SVM:
             np.sign(np.dot(rbf_kernel(X, Y=X[self._supp_idx], gamma=self._gamma), self._alpha)).T)
         return np.sum(z == y) / X.shape[0]
 
-    def log_state(self, alpha=None):
+    def log_state(self, alpha=None, accuracy=None):
         """
         Logs the current state
         :param alpha:
@@ -102,6 +104,9 @@ class SVM:
         """
         if alpha is not None:
             self.alpha_progress.append(np.mean(np.abs(alpha)))
+
+        if accuracy is not None:
+            self.accuracy_progress.append(accuracy)
         else:
             self.gamma_progress.append(self._gamma)
             self.support_progress.append(len(self._supp_idx))
@@ -195,4 +200,5 @@ class SVM:
         _str = "---- Training state ----\n"
         _str += "Number of SV: %i\n" % self._supp_idx.shape[0]
         _str += "Gamma: %0.3f\n" % self._gamma
+        _str += "Accuracy: %0.3f" % self.score(self.X, self.y)
         return _str

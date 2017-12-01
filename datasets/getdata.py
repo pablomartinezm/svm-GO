@@ -10,7 +10,6 @@ def set_dir(dir):
     global DIR_PREFIX
     DIR_PREFIX = dir
 
-
 def get_bank():
     xx = pd.read_csv(DIR_PREFIX+'/bank-full.csv',
                      engine='python',
@@ -18,8 +17,7 @@ def get_bank():
                      )
     xx['y'] = (xx.y == 'yes') * 1
     xx = pd.get_dummies(xx)
-    xx = _scale(xx)
-    return xx.loc[:, xx.columns != 'y'].as_matrix(), xx['y'].as_matrix()
+    return _scale(xx.loc[:, xx.columns != 'y'].as_matrix()), xx['y'].as_matrix()
 
 
 def get_blood():
@@ -42,7 +40,13 @@ def get_magic():
     xx['g'] = xx['g'].replace('h', 1)
     return _scale(xx.loc[:, xx.columns != 'g'].as_matrix()), xx['g'].as_matrix()
 
+
 def get_adult():
+    data = load_svmlight_file(DIR_PREFIX+"adult.libsvm")
+    return _scale(data[0].todense()), data[1]
+
+
+def get_malicious():
     data = load_svmlight_file(DIR_PREFIX+"adult.libsvm")
     return _scale(data[0].todense()), data[1]
 

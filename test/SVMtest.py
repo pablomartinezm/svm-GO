@@ -1,9 +1,8 @@
 import unittest
 
 import numpy as np
-
-from classes.svm_new import SVM
-
+from classes import SVM
+from classes import SVMGo
 
 class TestInit(unittest.TestCase):
 
@@ -24,7 +23,12 @@ class TestInit(unittest.TestCase):
         clf.regularize(1, 1)
         self.assertTrue(clf.alpha == np.array([0]))
 
-
+    def test_remove_sv(self):
+        clf = SVMGo()
+        clf._alpha = np.array([1, 1, 0.5, -0.5, 1, -0.1])
+        clf._supp_idx = np.array([5, 6, 1, 3, 12, 8])
+        clf.remove = 0.5
+        self.assertTrue(all(clf._alpha))
 
 
 if __name__ == '__main__':
