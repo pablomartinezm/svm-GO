@@ -3,12 +3,12 @@ import numpy as np
 from sklearn.metrics.pairwise import rbf_kernel
 
 
-
 class SVMGo(SVM):
 
     def __init__(self):
         SVM.__init__(self)
         self.dropout = 0.01
+        self.remove = 0
         self._random_sample = np.array([], dtype='uint8')
 
     @property
@@ -65,6 +65,7 @@ class SVMGo(SVM):
     def assertions(self, X, y):
         super().assertions(X, y)
         assert self.dropout is None or self.dropout >= 0
+        assert self.remove is None or self.remove >= 0
 
     def random_sample(self):
         if self.dropout is not None:
@@ -75,7 +76,7 @@ class SVMGo(SVM):
             # print("Dropout %f: %d" % (self.dropout, np.sum(self._random_sample)))
 
     def sv_remove(self):
-        k = int(self.dropout*self._supp_idx.shape[0])
+        k = int(self.remove*self._supp_idx.shape[0])
         idx = np.argpartition(self._supp_idx, k)
         self._supp_idx = self._supp_idx[idx[k:]]
         self._alpha = self._alpha[idx[k:]]
