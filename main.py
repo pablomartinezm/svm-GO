@@ -3,7 +3,7 @@ from sklearn.datasets import make_blobs, make_moons
 import matplotlib.pyplot as plt
 import numpy as np
 from classes.svm_old import SVM as SVMO
-from datasets import *
+import datasets
 
 from classes.svm import SVM
 from classes.svmgo import SVMGo
