@@ -6,6 +6,19 @@ from sklearn.preprocessing import MinMaxScaler
 DIR_PREFIX = "datasets/data/"
 
 
+def datasets():
+    return [
+        get_bank,
+        get_blood,
+        get_arrhythmia,
+        get_adult,
+        get_arcene,
+        get_magic,
+        get_malicious,
+        get_ringnorm,
+    ]
+
+
 def set_dir(dir):
     global DIR_PREFIX
     DIR_PREFIX = dir

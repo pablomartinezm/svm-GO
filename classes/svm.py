@@ -200,5 +200,7 @@ class SVM:
         _str = "---- Training state ----\n"
         _str += "Number of SV: %i\n" % self._supp_idx.shape[0]
         _str += "Gamma: %0.3f\n" % self._gamma
-        _str += "Accuracy: %0.3f" % self.score(self.X, self.y)
+        score = self.score(self.X, self.y)
+        _str += "Accuracy: %0.3f" % score
+        self.accuracy_progress.append(score)
         return _str
