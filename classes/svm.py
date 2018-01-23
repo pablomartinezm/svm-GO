@@ -28,6 +28,9 @@ class SVM:
         self.support_progress = []
         self.accuracy_progress = []
 
+        # Other
+        self.verbose = False
+
     @property
     def sv(self):
         """
@@ -58,6 +61,7 @@ class SVM:
     def fit(self, X, y, epochs=10, verbose=True):
         # Preset the system
         self.assertions(X, y)
+        self.verbose = verbose
 
         self.set_gamma()
         self.set_random_state()
@@ -90,11 +94,14 @@ class SVM:
             else:
                 self.regularize(xt_idx, xt)
 
+    def _predict_val(self, X):
+        return np.ravel(np.dot(rbf_kernel(X, Y=self.X[self._supp_idx], gamma=self._gamma), self._alpha)).T
+
+    def predict(self, X):
+        return np.sign(self._predict_val(X))
+
     def score(self, X, y):
-        y[y == 0] = -1
-        z = np.ravel(
-            np.sign(np.dot(rbf_kernel(X, Y=X[self._supp_idx], gamma=self._gamma), self._alpha)).T)
-        return np.sum(z == y) / X.shape[0]
+        return np.sum(self.predict(X) == y) / X.shape[0]
 
     def log_state(self, alpha=None, accuracy=None):
         """

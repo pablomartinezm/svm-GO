@@ -86,3 +86,28 @@ class SVMGo(SVM):
             self.sv_remove()
             self.fit_epoch()
             print(self)
+
+
+class SVMGoMultiClass(SVMGo):
+    def __init__(self):
+        super(SVMGoMultiClass, self).__init__()
+
+        # Multiclass elements
+        self.classes = None
+        self.classifiers = None
+
+    def fit(self, X, y, epochs=10, verbose=True):
+        self.classes = np.unique(y)
+        self.classifiers = list((x, SVMGo()) for x in self.classes)
+        for klass, cls in self.classifiers:
+            newy = np.copy(y)
+            newy[y != klass] = -1
+            newy[y == klass] = 1
+            cls.fit(X, newy, epochs=10)
+
+    def _predict_val(self, X):
+        return [(klass, cls._predict_val(X)) for klass, cls in self.classifiers]
+
+    def predict(self, X):
+        stack = np.vstack(([x for _, x in self._predict_val(X)]))
+        return np.array([self.classes[x] for x in np.argmax(stack, axis=0)])

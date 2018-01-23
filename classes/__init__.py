@@ -1,3 +1,3 @@
 from .svm import SVM
-from .svmgo import SVMGo
+from .svmgo import SVMGo, SVMGoMultiClass
 

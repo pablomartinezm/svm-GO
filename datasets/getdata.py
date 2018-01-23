@@ -18,6 +18,12 @@ def datasets():
         get_ringnorm,
     ]
 
+def small_datasets():
+    return [
+        get_arrhythmia,
+        get_arcene,
+        get_magic,
+    ]
 
 def set_dir(dir):
     global DIR_PREFIX
