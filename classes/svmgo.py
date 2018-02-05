@@ -10,6 +10,7 @@ class SVMGo(SVM):
         self.dropout = 0.01
         self.remove = 0
         self._random_sample = np.array([], dtype='uint8')
+        self.gamma_opt = True
 
     @property
     def sv(self):
@@ -44,19 +45,33 @@ class SVMGo(SVM):
         else:
             self._alpha[self._random_sample] = alpha
 
+    @property
+    def momentum(self):
+        if self.dropout is None:
+            return self._momentum
+        return self._momentum[self._random_sample]
+
+    @momentum.setter
+    def momentum(self, mom):
+        if self.dropout is None:
+            self._momentum = mom
+        else:
+            self._momentum[self._random_sample] = mom
+
     def optimize(self, xt_idx, xt, kernel):
-        # Optimize aña
+        # Optimize
         opt_term = self.y[xt_idx] * kernel
-        d_alpha = -np.squeeze(opt_term)
+        d_alpha = self.alpha_grad(-np.squeeze(opt_term))
         self.log_state(alpha=d_alpha)
         self.alpha -= d_alpha
         #super(SVMGo, self).optimize(xt_idx, xt, kernel)
 
         # Optimize gamma
-        norm = np.linalg.norm(xt-self.sv, axis=1)
-        d_gamma = float(np.dot(kernel * norm, self.y[xt_idx] * self.alpha))
-        ngamma = self._gamma - self.epsilon * d_gamma
-        self._gamma = max(ngamma, 0)
+        if self.gamma_opt:
+            norm = np.linalg.norm(xt-self.sv, axis=1)
+            d_gamma = float(np.dot(kernel * norm, self.y[xt_idx] * self.alpha))
+            ngamma = self._gamma - self.epsilon * d_gamma
+            self._gamma = max(ngamma, 0)
 
     def regularize(self, xt_idx, xt):
         # Nothing to do here
@@ -85,7 +100,8 @@ class SVMGo(SVM):
         for i in range(epochs):
             self.sv_remove()
             self.fit_epoch()
-            print(self)
+            if self.verbose:
+                print(self)
 
 
 class SVMGoMultiClass(SVMGo):
@@ -103,7 +119,7 @@ class SVMGoMultiClass(SVMGo):
             newy = np.copy(y)
             newy[y != klass] = -1
             newy[y == klass] = 1
-            cls.fit(X, newy, epochs=10)
+            cls.fit(X, newy, epochs=epochs)
 
     def _predict_val(self, X):
         return [(klass, cls._predict_val(X)) for klass, cls in self.classifiers]

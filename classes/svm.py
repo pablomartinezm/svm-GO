@@ -15,6 +15,8 @@ class SVM:
         self.y = None
 
         # Hyperparameters
+        self.gradient_booster = 'momentum'
+        self._momentum_coef = .9
         self.C = 1
         self.niter = 1000
         self.epsilon = 0.001
@@ -27,9 +29,20 @@ class SVM:
         self.alpha_progress = []
         self.support_progress = []
         self.accuracy_progress = []
+        self.momentum_progress = []
 
         # Other
         self.verbose = False
+        self.regularization = 'norm2'
+        self._momentum = np.array([])
+
+    @property
+    def momentum(self):
+        return self._momentum
+
+    @momentum.setter
+    def momentum(self, mom):
+        self._momentum = mom
 
     @property
     def sv(self):
@@ -58,7 +71,7 @@ class SVM:
     def random_sample(self):
         pass
 
-    def fit(self, X, y, epochs=10, verbose=True):
+    def fit(self, X, y, epochs=10, verbose=False):
         # Preset the system
         self.assertions(X, y)
         self.verbose = verbose
@@ -69,12 +82,14 @@ class SVM:
         idx, _ = self.get_random_vectors(self.batch_size)
         self.add_sv(idx)
         self.fit_online(epochs)
+        print(self)
 
     def fit_online(self, epochs):
         for i in range(epochs):
             self.fit_epoch()
             self.log_state(accuracy=self.score(self.X, self.y))
-            print(self)
+            if self.verbose:
+                print(self)
 
     def fit_epoch(self):
         for i in range(self.X.shape[0]):
@@ -103,6 +118,17 @@ class SVM:
     def score(self, X, y):
         return np.sum(self.predict(X) == y) / X.shape[0]
 
+    # def alpha_opt(self, xt_idx, xt, kernel):
+    #     if self.regularization == 'norm2':
+    #
+    #
+    #     if self.regularization == 'dropout':
+    #         opt_term = self.y[xt_idx] * kernel
+    #         d_alpha = -np.squeeze(opt_term)
+    #         self.log_state(alpha=d_alpha)
+    #         self.alpha -= d_alpha
+
+
     def log_state(self, alpha=None, accuracy=None):
         """
         Logs the current state
@@ -129,9 +155,19 @@ class SVM:
         # TODO: Check if we must just update the current alpha or all alphas.
         reg_term = self.alpha
         opt_term = self.C * self.y[xt_idx] * kernel
+
         d_alpha = self.epsilon * np.squeeze(reg_term - opt_term)
         self.log_state(alpha=d_alpha)
-        self.alpha -= d_alpha
+        self.alpha -= self.alpha_grad(d_alpha)
+
+    def alpha_grad(self, d_alpha):
+        if self.gradient_booster == 'momentum':
+            self.momentum = self._momentum_coef * self.momentum + d_alpha
+            self.momentum_progress.append(np.sum(np.abs(self.momentum)))
+            return self.momentum
+
+        elif self.gradient_booster == 'none':
+            return d_alpha
 
     def regularize(self, xt_idx, xt):
         """
@@ -154,6 +190,7 @@ class SVM:
         """
         # Check if the vector is already in the
         if idx not in self._supp_idx:
+            self._momentum = np.append(self._momentum, np.zeros(idx.shape))
             self._supp_idx = np.append(self._supp_idx, idx)
             if base_alpha:
                 self._alpha = np.append(self._alpha, self.y[idx])

@@ -88,7 +88,8 @@ class ExperimentSample(Experiment):
 class ExpAccuracyBatchOnline(Experiment):
     def start(self):
         kfold = 5
-        ds = small_datasets()
+        nsplits = 5
+        ds = datasets()
         self._df = pd.DataFrame(columns=['classifier', 'dataset', 'dropout', 'gamma', 'C', 'accuracy'])
 
         for d in ds:
@@ -98,10 +99,10 @@ class ExpAccuracyBatchOnline(Experiment):
             """
             svm-GO
             """
-            for i in range(1, 10):
+            for i in range(nsplits):
                 score = []
                 gamma = []
-                do = i / 10.
+                do = (1+i)*(1 / float(nsplits))
                 for X_train, X_test, y_train, y_test in data:
                     print('Dropout: %0.1f, Dataset: %s' % (i, d))
                     clf = SVMGo()
@@ -109,7 +110,7 @@ class ExpAccuracyBatchOnline(Experiment):
                     clf._gamma = 0.001
                     # clf.regularize = True
                     clf.epsilon = 0.001
-                    clf.fit(X_train, y_train, epochs=10, verbose=False)
+                    clf.fit(X_train, y_train, epochs=20, verbose=False)
                     print(clf)
                     score.append(clf.score(X_test, y_test))
                     gamma.append(clf._gamma)
@@ -133,7 +134,7 @@ class ExpAccuracyBatchOnline(Experiment):
             clf.fit(X, y)
             self._df = self._df.append({'classifier': 'SVC',
                                         'dataset': d.__name__.split('_')[1],
-                                        'dropout': None,
+                                        'dropout': "",
                                         'gamma': clf.best_params_['gamma'],
                                         'C': clf.best_params_['C'],
                                         'accuracy': clf.best_score_},
